@@ -99,7 +99,7 @@
                     </div>
                     <div class="foot-box">
                         <div class="copyright">
-                            <p>版权所有 黑马买买买 </p>
+                            <p>版权所有 商城买买买 </p>
                             <p>公司地址： 联系电话：</p>
                             <p class="gray">Copyright © 2009-2018 itcast Corporation,All Rights Reserved.</p>
                         </div>
