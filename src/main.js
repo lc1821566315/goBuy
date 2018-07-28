@@ -5,8 +5,13 @@ import VueRouter from 'vue-router'
 // 引入element
 import ElementUI from 'element-ui';
 import 'element-ui/lib/theme-chalk/index.css';
+// 引入iview组件
+import iView from 'iview';
+import 'iview/dist/styles/iview.css';
 // 路由中间件
 Vue.use(VueRouter)
+
+Vue.use(iView);
 // element中间件
 Vue.use(ElementUI);
 // 引入懒加载
@@ -18,6 +23,8 @@ import index from './components/index.vue';
 import gobuy from './components/gobuy.vue';
 // 引入会员中心组件
 import self from './components/self.vue';
+// 引入商品详情组件
+import goodsInfo from './components/goodsInfo.vue';
 
 // 注册路由规则
 const router = new VueRouter({
@@ -26,6 +33,7 @@ const router = new VueRouter({
     {path: '/index', component: index },
     {path: '/gobuy', component: gobuy },
     {path: '/self', component: self },
+    {path: '/goodsInfo/:id', component: goodsInfo}
   ]
 })
 

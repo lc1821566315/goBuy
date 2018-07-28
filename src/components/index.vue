@@ -78,6 +78,7 @@
                 <div class="wrap-box">
                     <ul class="img-list">
                         <li v-for="(itemson, i) in item.datas" :key="itemson.artID">
+                        <router-link :to="'/goodsInfo/'+itemson.artID">
                             <a href="#/site/goodsinfo/87" class="">
                                 <div class="img-box">
                                     <img v-lazy="itemson.img_url">
@@ -94,6 +95,7 @@
                                     </p>
                                 </div>
                             </a>
+                        </router-link>
                         </li>
                     </ul>
                 </div>
@@ -126,7 +128,7 @@ import axios from 'axios';
             })
             .catch( (error)=> {
                 console.log(error);
-            })
+            });
             // 底部商品列表
             axios.get('http://47.106.148.205:8899/site/goods/getgoodsgroup')
             .then((response)=> {
@@ -135,7 +137,7 @@ import axios from 'axios';
             })
             .catch( (error)=> {
                 console.log(error);
-            })
+            });
         },
         filters:{
             cut:function(value){
