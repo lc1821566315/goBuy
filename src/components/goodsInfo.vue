@@ -69,7 +69,7 @@
                                         <dd>
                                             <div id="buyButton" class="btn-buy">
                                                 <button onclick="cartAdd(this,'/',1,'/shopping.html');" class="buy">立即购买</button>
-                                                <button onclick="cartAdd(this,'/',0,'/cart.html');" class="add">加入购物车</button>
+                                                <button @click="cartAdd" class="add">加入购物车</button>
                                             </div>
                                         </dd>
                                     </dl>
@@ -100,48 +100,33 @@
                                         </div>
                                         <div class="conn-box">
                                             <div class="editor">
-                                                <textarea id="txtContent" name="txtContent" sucmsg=" " datatype="*10-1000" nullmsg="请填写评论内容！"></textarea>
+                                                <textarea v-model.trim="commentCotent" id="txtContent" name="txtContent" sucmsg=" " datatype="*10-1000" nullmsg="请填写评论内容！"></textarea>
                                                 <span class="Validform_checktip"></span>
                                             </div>
                                             <div class="subcon">
-                                                <input id="btnSubmit" name="submit" type="submit" value="提交评论" class="submit">
+                                                <input id="btnSubmit" @click="error" name="submit" type="submit" value="提交评论" class="submit">
                                                 <span class="Validform_checktip"></span>
                                             </div>
                                         </div>
                                     </div>
                                     <ul id="commentList" class="list-box">
-                                        <p style="margin: 5px 0px 15px 69px; line-height: 42px; text-align: center; border: 1px solid rgb(247, 247, 247);">暂无评论，快来抢沙发吧！</p>
-                                        <li>
+                                        <p v-if="messageList.length==0" style="margin: 5px 0px 15px 69px; line-height: 42px; text-align: center; border: 1px solid rgb(247, 247, 247);">暂无评论，快来抢沙发吧！</p>
+                                        <li v-for="(item, index) in messageList">
                                             <div class="avatar-box">
                                                 <i class="iconfont icon-user-full"></i>
                                             </div>
                                             <div class="inner-box">
                                                 <div class="info">
-                                                    <span>匿名用户</span>
-                                                    <span>2017/10/23 14:58:59</span>
+                                                    <span>{{item.user_name}}</span>
+                                                    <span>{{item.add_time}}</span>
                                                 </div>
-                                                <p>testtesttest</p>
+                                                <p>{{item.content}}</p>
                                             </div>
                                         </li>
-                                        <li>
-                                            <div class="avatar-box">
-                                                <i class="iconfont icon-user-full"></i>
-                                            </div>
-                                            <div class="inner-box">
-                                                <div class="info">
-                                                    <span>匿名用户</span>
-                                                    <span>2017/10/23 14:59:36</span>
-                                                </div>
-                                                <p>很清晰调动单很清晰调动单</p>
-                                            </div>
-                                        </li>
+
                                     </ul>
                                     <div class="page-box" style="margin: 5px 0px 0px 62px;">
-                                        <div id="pagination" class="digg">
-                                            <span class="disabled">« 上一页</span>
-                                            <span class="current">1</span>
-                                            <span class="disabled">下一页 »</span>
-                                        </div>
+                                        <Page :total="totalCount" :page-size="pageSize" @on-change="onChange($event)"/>
                                     </div>
                                 </div>
                             </div>
@@ -201,10 +186,19 @@ import ProductZoomer from 'vue-product-zoomer';
                     'move_by_click':true,
                     'scroll_items': 4,
                     'choosed_thumb_border_color': "#ff3d00"
-                }
+                },
+                pageIndex:1,
+                pageSize:5,
+                // 评论数据
+                messageList:[],
+                // 总条数
+                totalCount:0,
+                // 输入评论内容
+                commentCotent:'',
             }
         },
         methods:{
+            // 获取商品详情
             getgoodsinfo(){
                 // 强制清空大图
                 this.imglist=[];
@@ -226,16 +220,68 @@ import ProductZoomer from 'vue-product-zoomer';
         .catch( (error)=> {
             console.log(error);
         });
-            }
+        },
+        // 获取评论
+        getcomment(){
+            // 商品id -> this.$route.params.id
+            axios.get(`http://47.106.148.205:8899/site/comment/getbypage/goods/${this.$route.params.id}?pageIndex=${this.pageIndex}&pageSize=${this.pageSize}`)
+            .then((response)=>{
+                // console.log(response);
+                this.messageList=response.data.message;
+                this.totalCount=response.data.totalcount;
+            })
+            .catch((error)=>{
+                console.log(error); 
+            });
+        },
+            // 错误弹框提示
+            error () {
+                if(this.commentCotent==''){
+                    this.$Message.error('请正确输入!');
+                    return;
+                } 
+                // 发表评论
+                axios.post(`http://47.106.148.205:8899/site/validate/comment/post/goods/${this.$route.params.id}`,{
+                    commenttxt:this.commentCotent
+                })
+                .then((response)=>{
+                    // console.log(response);
+                    if(response.data.status==0){
+                        this.$Message.success('评论发表成功!');
+                        this.getcomment();
+                        // 去第一页
+                        this.pageIndex=1;
+                    }
+                })
+                .catch((error)=>{
+                    console.log(error); 
+                });
+                      // 清空评论
+                    this.commentCotent='';
+            },
+            cartAdd(){
+                this.$store.commit('increment',{
+                goodId:this.$route.params.id, // 商品id
+                goodNum:this.buynum           // 购买的数量
+        });
+            },
+            // 页码改变
+            onChange(page){
+                this.pageIndex = page;
+                // 重新获取数据
+                this.getcomment();
+            },  
         },
         mounted(){
             this.getgoodsinfo();
+            this.getcomment();
         },
         watch:{
             '$route' (to, from) {
             // 对路由变化作出响应...
             // console.log('我变了')
             this.getgoodsinfo();
+            this.getcomment();
         }
         },
         filters:{

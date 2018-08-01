@@ -50,7 +50,8 @@
                                     <th width="104" align="left">金额(元)</th>
                                     <th width="54" align="center">操作</th>
                                 </tr>
-                                <tr>
+                                <!--空的时候显示-->
+                                <tr v-if="message.length==0">
                                     <td colspan="10">
                                         <div class="msg-tips">
                                             <div class="icon warning">
@@ -64,12 +65,32 @@
                                         </div>
                                     </td>
                                 </tr>
+                                <!--有数据的时候显示-->
+                                <tr v-for="(item, index) in message" :key="item.id">
+                                    <td width="48" align="center">
+                                        <el-switch v-model="item.isSelected" active-color="#409eff" inactive-color="#555555">
+                                        </el-switch>
+                                    </td>
+                                    <td align="left" colspan="2">
+                                        <div class="shopInfo"><img :src="item.img_url" alt="" style="width: 50px; height: 50px; margin-right: 10px;">
+                                            <span>{{item.title}}</span>
+                                        </div>
+                                    </td>
+                                    <td width="84" align="left">{{item.sell_price}}</td>
+                                    <td width="104" align="center">
+                                        <el-input-number v-model="item.buycount" @change="countChange($event,index)" size="mini" :min="1" :max="10" label="描述文字"></el-input-number>
+                                    </td>
+                                    <td width="104" align="left">{{item.buycount*item.sell_price}}</td>
+                                    <td width="54" align="center">
+                                        <a @click="delIndex=index;showModal=true" href="javascript:void(0)">删除</a>
+                                    </td>
+                                </tr>
                                 <tr>
                                     <th align="right" colspan="8">
                                         已选择商品
-                                        <b class="red" id="totalQuantity">0</b> 件 &nbsp;&nbsp;&nbsp; 商品总金额（不含运费）：
+                                        <b class="red" id="totalQuantity">{{selectCount}}</b> 件 &nbsp;&nbsp;&nbsp; 商品总金额（不含运费）：
                                         <span class="red">￥</span>
-                                        <b class="red" id="totalAmount">0</b>元
+                                        <b class="red" id="totalAmount">{{totalPrice}}</b>元
                                     </th>
                                 </tr>
                             </tbody>
@@ -80,18 +101,116 @@
                     <div class="cart-foot clearfix">
                         <div class="right-box">
                             <button class="button" onclick="javascript:location.href='/index.html';">继续购物</button>
-                            <button class="submit" onclick="formSubmit(this, '/', '/shopping.html');">立即结算</button>
+                            <router-link to="/payOuder">
+                                <button class="submit">立即结算</button>
+                            </router-link>
                         </div>
                     </div>
                     <!--购物车底部-->
                 </div>
             </div>
-        </div>
+            <Modal v-model="showModal" width="360">
+            <p slot="header" style="color:#f60;text-align:center">
+                <Icon type="ios-information-circle"></Icon>
+                <span>警告</span>
+            </p>
+            <div style="text-align:center">
+                <p>你确定要删掉他</p>
+            </div>
+            <div slot="footer">
+                <Row>
+                    <Col span="12">
+                    <Button type="success" size="large" long @click="showModal=false">取消</Button>
+                    </Col>
+                    <Col span="12">
+                    <Button type="error" size="large" long @click="del">删除</Button>
+                    </Col>
+                </Row>
+
+            </div>
+        </Modal>
+    </div>
 </template>
 
 <script>
+import axios from 'axios';
     export default{
+        data:function(){
+            return{
+                message:[],
+                showModal: false,
+            }
+        },
+        // 获取数据
+        created(){
+                // 获取 数据 拼接为 id1,id2,id3....
+                let buyList=this.$store.state.buyList;
+                let ids='';
+                for(const key in buyList){
+                    ids+=key;
+                    ids+=',';
+                }
+                // 最后多了一个,
+                ids=ids.slice(0,-1);
+                axios.get(`http://47.106.148.205:8899/site/comment/getshopcargoods/${ids}`)
+                .then((response)=>{
+                // console.log(response);
+                response.data.message.forEach((v, i) => {
+                // 通过id 获取购物车数据中的 加入购物车的数量
+                v.buycount = buyList[v.id];
+                // 是否选中
+                    v.isSelected = true;
+        });
+            this.message = response.data.message;
 
+            })
+                .catch((error)=>{
+                console.log(error); 
+            });
+        },
+        computed:{
+            // 选中的商品数
+            selectCount(){
+                // 定义变量
+                let totalCount=0;
+                this.message.forEach(v=>{
+                    if(v.isSelected){
+                        totalCount+=v.buycount
+                    }
+                });  
+                return totalCount;
+            },
+            // 商品总金额
+            totalPrice(){
+                let price=0;
+                this.message.forEach(v=>{
+                    if(v.isSelected){
+                        price+= v.buycount*v.sell_price
+                    }
+                });
+                return price;
+            },
+        },
+        // 购买商品与总金额
+        methods:{
+            countChange(value,index){
+                // console.log(value)
+                this.$store.commit('changeCount',{
+                goodId:this.message[index].id, // 商品id
+                goodNum:value         // 购买的数量
+            });
+            },
+            // 删除商品
+            del(){
+                // console.log(this.delIndex);
+                // 删除Vuex中的数据 根据索引 去获取id 如果先删除 对应的元素已经没有了 获取到的id 不是对应的那个了
+                this.$store.commit("delGoodById", this.message[this.delIndex].id);
+                // 获取当前这条数据的 index 删除当前这个组件中的 这一条数据
+                this.message.splice(this.delIndex, 1);
+                // 修改标示变量
+                this.showModal = false;
+            }
+        }
     }
 </script>
 
