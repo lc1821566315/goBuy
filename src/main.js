@@ -40,7 +40,7 @@ const router = new VueRouter({
     {path: '/gobuy', component: gobuy },
     {path: '/self', component: self },
     {path: '/goodsInfo/:id', component: goodsInfo},
-    {path: '/payOuder', component: payOuder },
+    {path: '/payOuder/:ids', component: payOuder },
   ]
 })
 

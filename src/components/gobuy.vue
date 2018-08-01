@@ -101,9 +101,7 @@
                     <div class="cart-foot clearfix">
                         <div class="right-box">
                             <button class="button" onclick="javascript:location.href='/index.html';">继续购物</button>
-                            <router-link to="/payOuder">
-                                <button class="submit">立即结算</button>
-                            </router-link>
+                                <button @click="topayOrder" class="submit">立即结算</button>
                         </div>
                     </div>
                     <!--购物车底部-->
@@ -209,6 +207,22 @@ import axios from 'axios';
                 this.message.splice(this.delIndex, 1);
                 // 修改标示变量
                 this.showModal = false;
+            },
+            // 立即结算
+            topayOrder(){
+                let ids='';
+                this.message.forEach(v=>{
+                    if(v.isSelected){
+                        ids+=v.id;
+                        ids+=','; 
+                    }
+                })
+                if(ids==''){
+                    this.$message.error('没选商品')
+                    return;
+                }
+                ids=ids.slice(0,-1);
+                this.$router.push('/payOuder/'+ids);
             }
         }
     }
