@@ -133,7 +133,7 @@
                                     <dl>
                                         <dt>订单备注(100字符以内)</dt>
                                         <dd>
-                                            <textarea name="message" class="input" style="height:35px;"></textarea>
+                                            <textarea name="message" v-model="orderInfo.message" class="input" style="height:35px;"></textarea>
                                         </dd>
                                     </dl>
                                 </div>
@@ -154,6 +154,7 @@
                                     <p class="btn-box">
                                         <a class="btn button" href="/cart.html">返回购物车</a>
                                         <a id="btnSubmit"  @click="submitForm('orderInfo')" class="btn submit">确认提交</a>
+
                                     </p>
                                 </div>
                             </div>
@@ -297,7 +298,18 @@ export default {
             //   校验成功调接口
              axios.post('http://47.106.148.205:8899/site/validate/order/setorder',this.orderInfo)
              .then(response=>{
-                 console.log(response)
+                //  console.log(response);
+            // 订单创建成功之后
+            // 删除数据 id1,id2,id3,id4...
+            // 截取字符串 切断
+            let idArr = this.orderInfo.goodsids.split(',');
+            // // console.log(idArr);["88", "90", "94", "95"]
+            idArr.forEach(v=>{
+                // 通知vuex删除对应的数据
+                this.$store.commit('delGoodById',v);
+            })
+            // 代码跳转
+                this.$router.push('/orderInfo/'+response.data.message.orderid)
              })
              .catch(error=>{
                  console.log(error)
@@ -310,6 +322,18 @@ export default {
       },
   },
   created() {
+    //   判断是否登录
+    axios.get('http://47.106.148.205:8899/site/account/islogin')
+    .then(response=>{
+        // console.log(response)
+        if(response.data.code=='nologin'){
+            // 没登录
+            this.$router.push('/login')
+        }
+    })
+    .catch(error=>{
+        console.log(error)
+    }),
     //   console.log(this.$route.params.ids);
     axios.get(`http://47.106.148.205:8899/site/validate/order/getgoodslist/${this.$route.params.ids}`)
     .then(response=>{

@@ -11,7 +11,7 @@
                 </div>
                 <div id="menu" class="right-box">
                     <span style="display: none;">
-                        <a href="" class="">登录</a>
+                         <router-link to="/login">登录</router-link>
                         <strong>|</strong>
                         <a href="" class="">注册</a>
                         <strong>|</strong>
@@ -19,7 +19,7 @@
                     <span>
                         <router-link to="/self">会员中心</router-link>
                         <strong>|</strong>
-                        <a>退出</a>
+                        <a @click="loginout">退出</a>
                         <strong>|</strong>
                     </span>
                     <router-link to="/gobuy">
@@ -125,6 +125,7 @@
 <script>
 // 引入jquery模块
 import $ from 'jquery';
+import axios from 'axios';
 
 export default {
     name:'app',
@@ -143,6 +144,21 @@ export default {
 		$(".over",	this).stop().animate({'top':	'-48px'},	300); // move up - hide
 	});
 
+    },
+    methods:{
+        loginout(){
+            axios.get('http://47.106.148.205:8899/site/account/logout')
+            .then(response=>{
+                // console.log(response)
+                if(response.data.status==0){
+                    this.$Message.success('退出成功')
+                    this.$router.push('/index')
+                }
+            })
+            .catch(error=>{
+                console.log(error)
+            })
+        }
     }
 }
 </script>
